@@ -1,4 +1,5 @@
 import json
+import shelve
 
 message = {'code': 0,
            'data': {'result': {'bg': 0,
@@ -15,6 +16,24 @@ message = {'code': 0,
            'sid': 'iat00076046@dx17093fc0cf1a493802'}
 
 json_str = json.dumps(message)
-print(json_str)
-data = json.loads(json_str)['data']['result']['vad']
-print(data)
+# print(json_str)
+data = json.loads(json_str)["data"]["result"]["ws"]
+result = ""
+for i in data:
+    for w in i["cw"]:
+        result += w["w"]
+vad = json.loads(json_str)["data"]["result"]["vad"]
+item = vad["ws"][0]
+bg = item["bg"]
+ed = item["ed"]
+# 构造一个json对象
+words = {
+    "bg": bg,
+    "ed": ed,
+    "w": result
+}
+print(words)
+with shelve.open('lines.db') as db:
+    file = 'Audio/part_sound_1.wav'
+    print(type(db[file]))
+    print(type(db[file][0]))

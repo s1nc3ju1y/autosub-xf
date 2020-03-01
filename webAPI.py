@@ -22,7 +22,7 @@
 #  错误码链接：https://www.xfyun.cn/document/error-code （code返回错误码时必看）
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 from pprint import pprint
-
+import dbm
 import websocket
 import datetime
 import hashlib
@@ -40,6 +40,19 @@ import _thread as thread
 STATUS_FIRST_FRAME = 0  # 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  # 中间帧标识
 STATUS_LAST_FRAME = 2  # 最后一帧的标识
+
+
+def write_to_file(data):
+    json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
+    with open('data.txt', 'a+') as f:
+        f.write(json_str + '\n')
+
+
+def write_to_db(key, data):
+    json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
+    db = dbm.open('data.db', 'c')
+    if key not in db:
+        db[key] = data
 
 
 class Ws_Param(object):
@@ -100,14 +113,21 @@ def on_message(ws, message):
 
         else:
             data = json.loads(message)["data"]["result"]["ws"]
-            pprint(json.loads(message))
+            status = json.loads(message)["data"]["status"]
             result = ""
-            bg = ""
             for i in data:
                 for w in i["cw"]:
                     result += w["w"]
-
-            # print("sid:%s call success!,data is:%s" % (sid, json.dumps(data, ensure_ascii=False)))
+            if status != STATUS_LAST_FRAME:
+                vad = json.loads(message)["data"]["result"]["vad"]
+                info = vad["ws"][0]
+                words = {
+                    "bg": info["bg"],
+                    "ed": info["ed"],
+                    "words": result
+                }
+                write_to_file(words)
+            # print("sid:%s call success!" % sid)
             # print(result)
     except Exception as e:
         print("receive msg,but parse exception:", e)
@@ -127,10 +147,10 @@ def on_close(ws):
 def on_open(ws):
     def run(*args):
         frameSize = 8000  # 每一帧的音频大小
-        intervel = 0.04  # 发送音频间隔(单位:s)
+        interval = 0.04  # 发送音频间隔(单位:s)
         status = STATUS_FIRST_FRAME  # 音频的状态信息，标识音频是第一帧，还是中间帧、最后一帧
 
-        with open('Audio/part_sound_1.wav', "rb") as fp:
+        with open(wsParam.AudioFile, "rb") as fp:
             while True:
                 buf = fp.read(frameSize)
                 # 文件结束
@@ -164,7 +184,7 @@ def on_open(ws):
                     time.sleep(1)
                     break
                 # 模拟音频采样间隔
-                time.sleep(intervel)
+                time.sleep(interval)
         ws.close()
 
     thread.start_new_thread(run, ())
@@ -173,13 +193,13 @@ def on_open(ws):
 if __name__ == "__main__":
     # 测试时候在此处正确填写相关信息即可运行
     time1 = datetime.now()
+    file_name = 'Audio/part_sound_10.wav'
     wsParam = Ws_Param(APPID='5e2952b0', APIKey='414ea9ed44eda8363fbc10a5d6483ebc',
                        APISecret='9b7d258ee7d3bfbb014e0d2aa956652c',
-                       AudioFile=r'')
+                       AudioFile=file_name)
     websocket.enableTrace(False)
     wsUrl = wsParam.create_url()
-    ws = websocket.WebSocketApp(wsUrl, on_message=on_message, on_error=on_error, on_close=on_close)
-    ws.on_open = on_open
+    ws = websocket.WebSocketApp(wsUrl, on_open=on_open, on_message=on_message, on_error=on_error, on_close=on_close)
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
     time2 = datetime.now()
     print(time2 - time1)
