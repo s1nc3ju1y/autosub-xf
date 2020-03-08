@@ -19,46 +19,6 @@ class MyAPP:
         self.lines = []
         self.ws = None
 
-    # 收到websocket消息的处理
-    def on_message(self, message):
-        try:
-            code = json.loads(message)["code"]
-            sid = json.loads(message)["sid"]
-            if code != 0:
-                errMsg = json.loads(message)["message"]
-                print("sid:%s call error:%s code is:%s" % (sid, errMsg, code))
-
-            else:
-                data = json.loads(message)["data"]["result"]["ws"]
-                status = json.loads(message)["data"]["status"]
-                result = ""
-                for i in data:
-                    for w in i["cw"]:
-                        result += w["w"]
-                if status != STATUS_LAST_FRAME:
-                    vad = json.loads(message)["data"]["result"]["vad"]
-                    info = vad["ws"][0]
-                    words = {
-                        "bg": info["bg"],
-                        "ed": info["ed"],
-                        "words": result
-                    }
-                    self.lines.append(words)
-                # print("sid:%s call success!" % sid)
-                # print(result)
-        except Exception as e:
-            print("receive msg,but parse exception:", e)
-
-    # 收到websocket错误的处理
-    def on_error(self, error):
-        print("### error:", error)
-
-    # 收到websocket关闭的处理
-    def on_close(self):
-        with shelve.open('lines.db') as db:
-            db[self.param.AudioFile] = self.lines
-        print("### closed ###")
-
     # 收到websocket连接建立的处理
     def on_open(self):
         def run(*args):
@@ -103,7 +63,52 @@ class MyAPP:
                     time.sleep(interval)
             self.ws.close()
 
+        print('handling %s' % self.param.AudioFile)
         thread.start_new_thread(run, ())
+
+    # 收到websocket消息的处理
+    def on_message(self, message):
+        try:
+            code = json.loads(message)["code"]
+            sid = json.loads(message)["sid"]
+            if code != 0:
+                errMsg = json.loads(message)["message"]
+                print("sid:%s call error:%s code is:%s" % (sid, errMsg, code))
+
+            else:
+                data = json.loads(message)["data"]["result"]["ws"]
+                status = json.loads(message)["data"]["status"]
+                result = ""
+                for i in data:
+                    for w in i["cw"]:
+                        result += w["w"]
+                if status != STATUS_LAST_FRAME:
+                    vad = json.loads(message)["data"]["result"]["vad"]
+                    info = vad["ws"][0]
+                    # 返回的时间计量单位是 1/100s, 标准化为ms, 方便操作
+                    words = {
+                        "bg": info["bg"] * 10,
+                        "ed": info["ed"] * 10,
+                        "words": result
+                    }
+                    self.lines.append(words)
+                print('message received, saving...')
+                # print("sid:%s call success!" % sid)
+                # print(result)
+        except Exception as e:
+            print("receive msg,but parse exception:", e)
+
+    # 收到websocket错误的处理
+    def on_error(self, error):
+        print("### error:", error)
+
+    # 收到websocket关闭的处理
+    def on_close(self):
+        with shelve.open('lines.db') as db:
+            record = db[self.param.AudioFile]
+            record['lines'] = self.lines
+            db[self.param.AudioFile] = record
+        print("### closed ###")
 
     def start(self):
         self.ws = WebSocketApp(self.url,
@@ -114,8 +119,8 @@ class MyAPP:
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
-audios = [f'Audio/part_sound_{i}.wav' for i in range(10)]
-for i in range(2):
+audios = [f'Audio/part_sound_{i}.wav' for i in range(15)]
+for i in range(15):
     wp = Ws_Param(APPID='5e2952b0', APIKey='414ea9ed44eda8363fbc10a5d6483ebc',
                   APISecret='9b7d258ee7d3bfbb014e0d2aa956652c',
                   AudioFile=audios[i])

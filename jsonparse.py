@@ -1,5 +1,6 @@
 import json
 import shelve
+from pprint import pprint
 
 message = {'code': 0,
            'data': {'result': {'bg': 0,
@@ -32,8 +33,7 @@ words = {
     "ed": ed,
     "w": result
 }
-print(words)
+# print(words)
 with shelve.open('lines.db') as db:
-    file = 'Audio/part_sound_1.wav'
-    print(type(db[file]))
-    print(type(db[file][0]))
+    file_name = 'Audio/part_sound_6.wav'
+    pprint(db[file_name])

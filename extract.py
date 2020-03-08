@@ -2,6 +2,7 @@ import os
 from ffmpy3 import FFmpeg
 from pydub.audio_segment import AudioSegment
 from pydub.utils import mediainfo
+import shelve
 
 
 def video2wav(file):
@@ -28,15 +29,22 @@ def wav_split(file):
         n = sound_len // 60
         while n * 60 < sound_len:
             n = n + 1
-    for i in range(n):
-        start_time = i * 60 * 1000 + 1
-        end_time = (i + 1) * 60 * 1000
-        if end_time > sound_len * 1000:
-            end_time = sound_len * 1000
-        word = sound[start_time: end_time]
-        part_file_name = '{}part_sound_{}.wav'.format(path, i)
-        word.export(part_file_name, format='wav')
-        part_file_list.append(part_file_name)
+    with shelve.open('lines.db') as db:
+        for i in range(n):
+            start_time = i * 60 * 1000 + 1
+            end_time = (i + 1) * 60 * 1000
+            if end_time > sound_len * 1000:
+                end_time = sound_len * 1000
+            word = sound[start_time: end_time]
+            part_file_name = '{}part_sound_{}.wav'.format(path, i)
+            word.export(part_file_name, format='wav')
+            part_file_list.append(part_file_name)
+            record = {
+                "start": start_time,
+                "end": end_time,
+                "lines": []
+            }
+            db[part_file_name] = record
     return part_file_list
 
 

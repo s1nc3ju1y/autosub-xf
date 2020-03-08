@@ -42,17 +42,17 @@ STATUS_CONTINUE_FRAME = 1  # 中间帧标识
 STATUS_LAST_FRAME = 2  # 最后一帧的标识
 
 
-def write_to_file(data):
-    json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
-    with open('data.txt', 'a+') as f:
-        f.write(json_str + '\n')
-
-
-def write_to_db(key, data):
-    json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
-    db = dbm.open('data.db', 'c')
-    if key not in db:
-        db[key] = data
+# def write_to_file(data):
+#     json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
+#     with open('data.txt', 'a+') as f:
+#         f.write(json_str + '\n')
+#
+#
+# def write_to_db(key, data):
+#     json_str = json.dumps(data, indent=4, separators=(',', ':'), ensure_ascii=False)
+#     db = dbm.open('data.db', 'c')
+#     if key not in db:
+#         db[key] = data
 
 
 class Ws_Param(object):
@@ -126,7 +126,6 @@ def on_message(ws, message):
                     "ed": info["ed"],
                     "words": result
                 }
-                write_to_file(words)
             # print("sid:%s call success!" % sid)
             # print(result)
     except Exception as e:
