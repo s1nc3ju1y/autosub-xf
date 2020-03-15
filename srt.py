@@ -1,6 +1,8 @@
 import os
 import shelve
 
+from translate import Translator
+
 
 def time_convert(m):
     """
@@ -15,10 +17,12 @@ def time_convert(m):
     return '%02d:%02d:%02d,%d' % (hh, mm, ss, ms)
 
 
-def gen_srt(file_name):
+def gen_srt(file_name, type):
+    tl = Translator("itrans.xfyun.cn")
     # 生成srt字幕文件
     path, name = os.path.split(file_name)
-    with shelve.open('lines.db') as db, open('Srt/' + name + '.srt', 'w+', encoding='utf-8') as srt:
+    srt_file = 'Srt/' + name + '.srt'
+    with shelve.open('lines.db') as db, open(srt_file, 'w+', encoding='utf-8') as srt:
         # 每个字典提取一行, 获取开始时间, 结束时间和行号
         for i, record in enumerate(db[file_name]['lines']):
             # 写行号
@@ -27,9 +31,11 @@ def gen_srt(file_name):
             index = str(i + 1)
             timeline = time_convert(bg) + ' --> ' + time_convert(ed)
             words = record['words']
+            if type == 'cn':
+                words = tl.get_translation(words)
             s = ''.join(index + '\n' + timeline + '\n' + words + '\n\n')
-            print(s)
             srt.write(s)
+    return srt_file
 
 
 def merge_srts(filenames):
@@ -43,10 +49,3 @@ def merge_srts(filenames):
             with open(file, 'r', encoding='utf-8') as part:
                 data = part.read()
                 full.write(data)
-
-
-audios = [f'Srt/part_sound_{i}.wav.srt' for i in range(15)]
-# for audio in audios:
-#     gen_srt(audio)
-
-merge_srts(audios)

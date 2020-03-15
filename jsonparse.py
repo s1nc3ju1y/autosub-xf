@@ -2,6 +2,7 @@ import json
 import shelve
 from pprint import pprint
 
+# 语音识别返回json
 message = {'code': 0,
            'data': {'result': {'bg': 0,
                                'ed': 0,
@@ -16,6 +17,13 @@ message = {'code': 0,
            'message': 'success',
            'sid': 'iat00076046@dx17093fc0cf1a493802'}
 
+# 机器翻译返回json
+translation = {'code': 0,
+               'data': {'result': {'from': 'en', 'to': 'cn',
+                                   'trans_result': {'dst': '你好',
+                                                    'src': 'hello'}}},
+               'message': 'success',
+               'sid': 'its00081a8a@dx170dbd2fe92a11c902'}
 json_str = json.dumps(message)
 # print(json_str)
 data = json.loads(json_str)["data"]["result"]["ws"]

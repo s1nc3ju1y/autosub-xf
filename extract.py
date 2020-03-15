@@ -1,8 +1,9 @@
 import os
+import shelve
+
 from ffmpy3 import FFmpeg
 from pydub.audio_segment import AudioSegment
 from pydub.utils import mediainfo
-import shelve
 
 
 def video2wav(file):
@@ -48,6 +49,12 @@ def wav_split(file):
     return part_file_list
 
 
-video = 'Video/Ted.mp4'
-wav = video2wav(video)
-wav_split(wav)
+def mount_sub(video, srt):
+    extension = video.split('.')[-1]
+    output_video = video.replace(extension, 'avi')
+    ff = FFmpeg(inputs={video: None},
+                global_options='-y',
+                outputs={output_video: '-vf subtitles=%s' % srt})
+    print(ff.cmd)
+    ff.run()
+    return output_video
