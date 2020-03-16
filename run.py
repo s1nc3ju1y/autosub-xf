@@ -27,7 +27,7 @@ if not subtitle:
     audios = [f'Audio/part_sound_{i}.wav' for i in range(15)]
     srts = []
     for audio in audios:
-        srt_file = gen_srt(audio, 'cn')
+        srt_file = gen_srt(audio, 'en')
         srts.append(srt_file)
     # 合并分段字幕
     merge_srts(srts)

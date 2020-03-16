@@ -1,5 +1,6 @@
 import os
 import shelve
+import textwrap
 
 from translate import Translator
 
@@ -17,7 +18,7 @@ def time_convert(m):
     return '%02d:%02d:%02d,%d' % (hh, mm, ss, ms)
 
 
-def gen_srt(file_name, type):
+def gen_srt(file_name, target):
     tl = Translator("itrans.xfyun.cn")
     # 生成srt字幕文件
     path, name = os.path.split(file_name)
@@ -31,9 +32,12 @@ def gen_srt(file_name, type):
             index = str(i + 1)
             timeline = time_convert(bg) + ' --> ' + time_convert(ed)
             words = record['words']
-            if type == 'cn':
+            if target == 'cn':
                 words = tl.get_translation(words)
-            s = ''.join(index + '\n' + timeline + '\n' + words + '\n\n')
+            lines = []
+            for line in textwrap.wrap(words):
+                lines.append(line + '\n')
+            s = ''.join(index + '\n' + timeline + '\n' + ''.join(lines) + '\n\n')
             srt.write(s)
     return srt_file
 
