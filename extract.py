@@ -30,7 +30,7 @@ def wav_split(file):
         n = sound_len // 60
         while n * 60 < sound_len:
             n = n + 1
-    with shelve.open('lines.db') as db:
+    with shelve.open('DB/lines.db') as db:
         for i in range(n):
             start_time = i * 60 * 1000 + 1
             end_time = (i + 1) * 60 * 1000

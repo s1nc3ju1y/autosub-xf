@@ -30,7 +30,7 @@ class APIParam(object):
         # 公共参数(common)
         self.CommonArgs = {"app_id": self.APPID}
         # 业务参数(business)，更多个性化参数可在官网查看
-        self.BusinessArgs = {"domain": "iat", "language": "us_en", "ptt": 0, "vinfo": 1, "vad_eos": 50000}
+        self.BusinessArgs = {"domain": "iat", "language": "us_en", "ptt": 0, "vinfo": 1, "vad_eos": 8000}
 
     # 生成url
     def create_url(self):
@@ -158,7 +158,7 @@ class DictationAPP(object):
 
     # 收到websocket关闭的处理
     def on_close(self):
-        with shelve.open('lines.db') as db:
+        with shelve.open('DB/lines.db') as db:
             record = db[self.param.AudioFile]
             record['lines'] = self.lines
             db[self.param.AudioFile] = record

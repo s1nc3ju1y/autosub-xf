@@ -23,7 +23,7 @@ def gen_srt(file_name, target):
     # 生成srt字幕文件
     path, name = os.path.split(file_name)
     srt_file = 'Srt/' + name + '.srt'
-    with shelve.open('lines.db') as db, open(srt_file, 'w+', encoding='utf-8') as srt:
+    with shelve.open('DB/lines.db') as db, open(srt_file, 'w+', encoding='utf-8') as srt:
         # 每个字典提取一行, 获取开始时间, 结束时间和行号
         for i, record in enumerate(db[file_name]['lines']):
             # 写行号
