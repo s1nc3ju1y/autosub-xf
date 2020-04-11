@@ -13,7 +13,7 @@ def video2wav(file):
     output_file = 'Audio/' + filename.replace(extension, 'wav')
     ff = FFmpeg(inputs={input_file: None},
                 global_options=['-y'],
-                outputs={output_file: '-vn -ar 16000 -ac 1 -ab 128 -f wav'})
+                outputs={output_file: '-vn -ar 16000 -ac 1 -ab 128k -f wav'})
     print(ff.cmd)
     ff.run()
     return output_file

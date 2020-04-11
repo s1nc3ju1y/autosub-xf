@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # usage -i input -d diction, -t translation -s subtitle -m merge -0 output
     parser = argparse.ArgumentParser(description="Auto generate subtitle and translate it")
     parser.add_argument('-i', help='input a video file', default='Video/Ted.mp4')
-    parser.add_argument('-o', help='video output')
+    parser.add_argument('-o', help='video output', default='Video/Ted.avi')
     parser.add_argument('-d', help='dictation', action='store_true', default=False)
     parser.add_argument('-t', help='translation', action='store_true', default=False)
     parser.add_argument('-s', help='subtitle', action='store_true', default=False)
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     # 预处理
     # 提取完整音频并切分成60s的片段
     if args.d:
-        video = args.i
+        video = input_video
         wav = video2wav(video)
         parts = wav_split(wav)
         num_of_parts = len(parts)
@@ -49,8 +49,14 @@ if __name__ == '__main__':
             srt_file = gen_srt(audio, 'cn') if args.t else gen_srt(audio, 'en')
             srts.append(srt_file)
         # 合并分段字幕
-        merge_srts(srts)
+        if args.t:
+            merge_srts(srts, 'Video/main.cn.srt')
+        else:
+            merge_srts(srts, 'Video/main.srt')
 
     # 合并字幕与视频
     if args.m:
-        mount_sub(args.i, 'Video/main.srt')
+        if args.t:
+            mount_sub(args.i, 'Video/main.cn.srt')
+        else:
+            mount_sub(args.i, 'Video/main.srt')

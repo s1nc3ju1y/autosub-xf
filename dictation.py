@@ -30,7 +30,7 @@ class APIParam(object):
         # 公共参数(common)
         self.CommonArgs = {"app_id": self.APPID}
         # 业务参数(business)，更多个性化参数可在官网查看
-        self.BusinessArgs = {"domain": "iat", "language": "us_en", "ptt": 0, "vinfo": 1, "vad_eos": 8000}
+        self.BusinessArgs = {"domain": "iat", "language": "us_en", "ptt": 0, "vinfo": 1, "vad_eos": 60000}
 
     # 生成url
     def create_url(self):

@@ -39,17 +39,19 @@ def gen_srt(file_name, target):
                 lines.append(line + '\n')
             s = ''.join(index + '\n' + timeline + '\n' + ''.join(lines) + '\n\n')
             srt.write(s)
+            print('new line generated')
     return srt_file
 
 
-def merge_srts(filenames):
+def merge_srts(part_srts, main_srt):
     """
     合并多个字幕分段文件到一个文件中
-    :param filenames:
+    :param part_srts:
+    :param main_srt:
     :return:
     """
-    with open('Video/main.srt', 'w', encoding='utf-8') as full:
-        for file in filenames:
+    with open(main_srt, 'w', encoding='utf-8') as full:
+        for file in part_srts:
             with open(file, 'r', encoding='utf-8') as part:
                 data = part.read()
                 full.write(data)
