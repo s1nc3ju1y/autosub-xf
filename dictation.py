@@ -10,13 +10,26 @@ import time
 from datetime import datetime
 from time import mktime
 from urllib.parse import urlencode
-from wsgiref.handlers import format_date_time
 
 from websocket import WebSocketApp
+
+from translate import Translator
 
 STATUS_FIRST_FRAME = 0  # 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  # 中间帧标识
 STATUS_LAST_FRAME = 2  # 最后一帧的标识
+
+_weekdayname = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_monthname = [None,  # Dummy so we can use 1-based month numbers
+              "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def format_date_time(timestamp):
+    year, month, day, hh, mm, ss, wd, y, z = time.gmtime(timestamp)
+    return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (
+        _weekdayname[wd], day, _monthname[month], year, hh, mm, ss
+    )
 
 
 class APIParam(object):
@@ -72,6 +85,7 @@ class DictationAPP(object):
         self.url = self.param.create_url()
         self.lines = []
         self.ws = None
+        self.translator = Translator("itrans.xfyun.cn")
 
     # 收到websocket连接建立的处理
     def on_open(self):
@@ -139,13 +153,17 @@ class DictationAPP(object):
                 if status != STATUS_LAST_FRAME:
                     vad = json.loads(message)["data"]["result"]["vad"]
                     info = vad["ws"][0]
-                    # 返回的时间计量单位是 1/100s, 标准化为ms, 方便操作
-                    words = {
+
+                    # 请求翻译服务, 获取翻译结果
+                    translation = self.translator.get_translation(result)
+                    line = {
+                        # 返回的时间计量单位是 1/100s, 标准化为ms, 方便操作
                         "bg": info["bg"] * 10,
                         "ed": info["ed"] * 10,
-                        "words": result
+                        "words": result,
+                        "translation": translation
                     }
-                    self.lines.append(words)
+                    self.lines.append(line)
                 print('message received, saving...')
                 # print("sid:%s call success!" % sid)
                 # print(result)

@@ -45,16 +45,22 @@ def wav_split(file):
                 "end": end_time,
                 "lines": []
             }
-            db[part_file_name] = record
+
+            # 对不在数据库中的条目, 存储之
+            if not db[part_file_name]:
+                db[part_file_name] = record
     return part_file_list
 
 
-def mount_sub(video, srt):
-    extension = video.split('.')[-1]
-    output_video = video.replace(extension, 'avi')
-    ff = FFmpeg(inputs={video: None},
-                global_options='-y',
-                outputs={output_video: '-vf subtitles=%s' % srt})
-    print(ff.cmd)
-    ff.run()
-    return output_video
+def prepare(video):
+    """
+    对视频进行提取音轨, 切片预处理
+    :param video: 输入视频
+    :return: 输出的音频片段文件名
+    """
+    wav = video2wav(video)
+    parts = wav_split(wav)
+    num_of_parts = len(parts)
+    audios = [f"Audio/part_sound_{i}.wav" for i in range(num_of_parts)]
+
+    return audios
